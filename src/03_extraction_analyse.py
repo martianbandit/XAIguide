@@ -1,31 +1,28 @@
-import spacy
-import re
 from collections import Counter
+import re
+import spacy
 
-# --- NER (marque, modèle, année, etc.) ---
 nlp = spacy.load('fr_core_news_sm')
 
 def extract_entities(texts):
-    info = {'brand': None, 'model': None, 'year': None}
-    for text in texts:
-        doc = nlp(str(text))
-        for ent in doc.ents:
-            if ent.label_ == 'ORG' and not info['brand']:
-                info['brand'] = ent.text
-            elif ent.label_ == 'PRODUCT' and not info['model']:
-                info['model'] = ent.text
-            elif ent.label_ == 'DATE' and not info['year']:
-                info['year'] = ent.text
-    return info
+    ent = {'brand': None, 'model': None, 'year': None}
+    for txt in texts:
+        doc = nlp(str(txt))
+        for e in doc.ents:
+            if e.label_ == 'ORG' and not ent['brand']:
+                ent['brand'] = e.text
+            elif e.label_ == 'PRODUCT' and not ent['model']:
+                ent['model'] = e.text
+            elif e.label_ == 'DATE' and not ent['year']:
+                ent['year'] = e.text
+    return ent
 
-# --- Lexique technique ---
-def extract_vocab(all_texts):
+def extract_vocab(texts):
     words = []
-    for txt in all_texts:
-        words += re.findall(r"\\b\\w+\\b", str(txt).lower())
+    for t in texts:
+        words.extend(re.findall(r'\\b\\w+\\b', t.lower()))
     return Counter(words)
 
-# --- (Optionnel) Description automatique d'image (modèle externe) ---
 def describe_images(image_urls):
-    # À intégrer: call BLIP2, Gemini Vision, etc.
-    return ["Description automatique (à implémenter)" for _ in image_urls]
+    # Placeholder – à remplacer par BLIP2 ou Gemini API
+    return [f'Image trouvée à {url} (description automatique à venir)' for url in image_urls]
