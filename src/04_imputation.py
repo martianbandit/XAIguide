@@ -1,11 +1,11 @@
-def enrich_row(row, context_table=None):
-    # Compléter avec ce qu'on a pu extraire des commentaires, images
-    # context_table: table d'autres posts déjà traités pour imputation croisée
-    if pd.isna(row['brand']) or pd.isna(row['model']) or pd.isna(row['year']):
-        entities = extract_entities([row['body']] + [c['body'] for c in row.get('comments', [])])
-        for key in ['brand', 'model', 'year']:
-            if pd.isna(row[key]) and entities[key]:
-                row[key] = entities[key]
-    # Possible: enrichir à partir d'un contexte global/context_table
-    # ... (complétion avancée à partir de context_table)
+def impute_from_context(row, full_dataset=None):
+    ents = row.get('entities', {})
+    for key in ['brand', 'model', 'year']:
+        if not row.get(key) and ents.get(key):
+            row[key] = ents[key]
+        # Recherche dans full_dataset si pas trouvé
+        if not row.get(key) and full_dataset is not None:
+            match = full_dataset[(full_dataset['url_post'] != row['url_post']) & (full_dataset[key].notna())]
+            if not match.empty:
+                row[key] = match[key].mode().iloc[0]
     return row
