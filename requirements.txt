@@ -1,0 +1,9 @@
+### requirements.txt
+```txt
+pandas
+spacy
+praw
+requests
+beautifulsoup4
+python-dotenv
+nltk
