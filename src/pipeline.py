@@ -1,16 +1,17 @@
-def compile_lexicon(posts):
-    lex = Counter()
-    for post in posts:
-        lex.update(extract_vocab([post.get('body', '')] + [c['body'] for c in post.get('comments', [])]))
-    return lex
+import os
+import argparse
+from config import DATA_INPUT_PATH, DATA_OUTPUT_PATH
 
-def export_lexicon(lex, path):
-    with open(path, 'w', encoding='utf-8') as f:
-        for word, count in lex.most_common():
-            f.write(f\"{word},{count}\\n\")
+def run_pipeline(input_csv, outdir):
+    os.system(f'python src/01_load_and_normalize.py {input_csv}')
+    os.system('python src/02_reddit_fetch.py data/output/normalized.csv')
+    os.system('python src/03_extraction_analyse.py data/output/reddit_enriched.csv')
+    os.system('python src/04_imputation.py data/output/analysed.csv')
+    os.system('python src/05_metrics_export.py data/output/imputed.csv')
 
-def export_images(posts, path):
-    with open(path, 'w', encoding='utf-8') as f:
-        for post in posts:
-            for img_url in post.get('images', []):
-                f.write(json.dumps({'url_post': post['url_post'], 'img_url': img_url}) + '\\n')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', default=DATA_INPUT_PATH + 'votre_fichier.csv', help='Chemin du fichier CSV à analyser')
+    parser.add_argument('--output', default=DATA_OUTPUT_PATH, help='Dossier de sortie')
+    args = parser.parse_args()
+    run_pipeline(args.input, args.output)
