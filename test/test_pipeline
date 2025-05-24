@@ -1,0 +1,9 @@
+import pandas as pd
+from src.01_load_and_normalize import load_and_normalize
+
+def test_load_and_normalize_creates_columns():
+    df = pd.DataFrame({'url_post': ['test']})
+    df_out = load_and_normalize(df)
+    assert 'brand' in df_out.columns
+    assert 'model' in df_out.columns
+    assert len(df_out.columns) >= 9
