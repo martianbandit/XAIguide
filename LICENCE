@@ -1,0 +1,9 @@
+### c. Publication HuggingFace (optionnel)
+- `huggingface-cli login`
+- `huggingface-cli repo create reddit-mecano-pipeline --type=dataset`
+- Push du `posts_full.jsonl`, `lexique.csv`, etc. depuis `data/output/`
+- Démo possible via Gradio/Streamlit avec description d’image et viewer
+
+---
+
+Souhaites-tu que je te génère directement les fichiers README.md, LICENSE, requirements.txt ou les modèles initiaux de tests ?
