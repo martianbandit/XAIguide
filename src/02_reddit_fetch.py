@@ -1,46 +1,52 @@
 import praw
 import time
+from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
 
-REDDIT_CLIENT_ID = 'VOTRE_CLIENT_ID'
-REDDIT_SECRET = 'VOTRE_SECRET'
-REDDIT_AGENT = 'pipeline-mecano-v1'
 REQS_PER_MIN = 60
 
-reddit = praw.Reddit(client_id=REDDIT_CLIENT_ID, client_secret=REDDIT_SECRET, user_agent=REDDIT_AGENT)
+reddit = praw.Reddit(
+    client_id=REDDIT_CLIENT_ID,
+    client_secret=REDDIT_CLIENT_SECRET,
+    user_agent=REDDIT_USER_AGENT
+)
+
+def throttle(i):
+    if (i + 1) % REQS_PER_MIN == 0:
+        time.sleep(65)
+    else:
+        time.sleep(1.1)
 
 def reddit_fetch_post(url):
     try:
         submission = reddit.submission(url=url)
-        post = {
+        submission.comments.replace_more(limit=0)
+        comments = [
+            {'body': c.body, 'score': c.score, 'author': str(c.author)}
+            for c in submission.comments.list()
+            if len(c.body) > 30 and c.score >= 1
+        ]
+        images = []
+        if hasattr(submission, 'preview'):
+            images = [img['source']['url'] for img in submission.preview.get('images', [])]
+        return {
+            'url_post': url,
             'title': submission.title,
             'body': submission.selftext,
-            'created_utc': submission.created_utc,
             'flair': getattr(submission, 'link_flair_text', None),
-            'images': [x['url'] for x in getattr(submission, 'preview', {}).get('images', [])]
+            'created_utc': submission.created_utc,
+            'comments': comments,
+            'images': images
         }
-        return post, submission
     except Exception as e:
         print(f"Erreur Reddit sur {url}: {e}")
-        return None, None
+        return {'url_post': url, 'error': str(e)}
 
-def reddit_fetch_comments(submission, min_score=1, min_len=30):
-    if submission is None:
-        return []
-    submission.comments.replace_more(limit=0)
-    comments = []
-    for c in submission.comments.list():
-        if len(getattr(c, 'body', '')) >= min_len and c.score >= min_score:
-            comments.append({'body': c.body, 'score': c.score, 'author': str(c.author)})
-    return comments
-
-def batch_reddit_fetch(urls, sleep_per_req=1.1):
-    all_posts = []
-    for i, url in enumerate(urls):
-        post, submission = reddit_fetch_post(url)
-        time.sleep(sleep_per_req)  # throttle!
-        comments = reddit_fetch_comments(submission)
-        all_posts.append({'url_post': url, **(post or {}), 'comments': comments})
-        if (i+1) % REQS_PER_MIN == 0:
-            print("Pause pour éviter le rate-limit Reddit…")
-            time.sleep(60)
-    return all_posts
+def enrich_df_with_reddit(df):
+    enriched = []
+    for i, row in df.iterrows():
+        data = reddit_fetch_post(row['url_post'])
+        throttle(i)
+        combined = row.to_dict()
+        combined.update(data)
+        enriched.append(combined)
+    return enriched
