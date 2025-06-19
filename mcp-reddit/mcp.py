@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-“””
-Serveur MCP pour l’API Reddit
-Ce serveur expose les fonctionnalités principales de Reddit via le protocole MCP.
-“””
+#Serveur MCP pour l’API Reddit
+#Ce serveur expose les fonctionnalités #principales de Reddit via le protocole MCP.
+
 
 import os
 import json
