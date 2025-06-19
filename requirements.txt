@@ -1,5 +1,4 @@
 ### requirements.txt
-```txt
 pandas
 spacy
 praw
