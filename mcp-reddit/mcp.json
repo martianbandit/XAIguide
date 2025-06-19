@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "reddit": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/CHEMIN/ABSOLU/VERS/reddit-mcp-server",
+        "run",
+        "reddit_server.py"
+      ],
+      "env": {
+        "REDDIT_CLIENT_ID": "votre_client_id",
+        "REDDIT_CLIENT_SECRET": "votre_client_secret",
+        "REDDIT_USER_AGENT": "MCP Reddit Server 1.0"
+      }
+    }
+  }
+}
